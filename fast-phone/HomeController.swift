@@ -8,7 +8,6 @@
 
 import UIKit
 import CoreMotion
-import Foundation
 
 class HomeController: UIViewController {
     
@@ -21,31 +20,49 @@ class HomeController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         newTryButton.layer.cornerRadius = 9
-        //let json: NSData = getJSON(urlToRequest: urlString)
-        //let everyoneData: NSArray = parseJSON(inputData: json)
-        //print(getEveryoneHighScore(array: data))
+        let json: NSData = getJSON(urlToRequest: urlString)
+        let everyoneData: NSArray = parseJSON(inputData: json)
+        everyoneRecordLabel.text = getEveryoneHighScore(array: everyoneData)
         
         let userData: Array<Try> = allTrys()
         userRecoredLabel.text = getUserHighScore(array: userData)
+        
+        print("panda")
+        print(self.presentedViewController ?? "none")
+        print("panda")
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        checkGyro()
+         checkAccelerometer()
     }
     
-    /*func getEveryoneHighScore(array: NSArray) -> String {
-        var highScore: Any = 0
+    func getJSON(urlToRequest: String) -> NSData{
+        return try! NSData(contentsOf: NSURL(string: urlToRequest) as! URL)
+    }
+    
+    func parseJSON(inputData: NSData) -> NSArray{
+        let boardsDictionary = try! JSONSerialization.jsonObject(with:
+            inputData as Data,
+            options: JSONSerialization.ReadingOptions.mutableContainers)
+                as! NSArray
+        
+        return boardsDictionary
+    }
+    
+    func getEveryoneHighScore(array: NSArray) -> String {
+        var highScore: Float = 0
         
         for a in array {
-            let dictionary: Dictionary<String, Any> = a as! Dictionary<String, Any>
+            let dictionary: Dictionary<String, String> = a as!
+                Dictionary<String, String>
             
-            if dictionary["score"] > highScore {
-                highScore = dictionary["score"] as! Float
+            if Float(dictionary["score"]!)! > highScore {
+                highScore = Float(dictionary["score"]!)!
             }
         }
-    
+        
         return String(describing: highScore)
-    }*/
+    }
     
     func getUserHighScore(array: Array<Try>) -> String {
         var highScore: Float = Float(0)
@@ -58,30 +75,25 @@ class HomeController: UIViewController {
         
         return String(highScore)
     }
+
     
-    func getJSON(urlToRequest: String) -> NSData{
-        return try! NSData(contentsOf: NSURL(string: urlToRequest) as! URL)
-    }
-    
-    func parseJSON(inputData: NSData) -> NSArray{
-        let boardsDictionary = try! JSONSerialization.jsonObject(with: inputData as Data, options: JSONSerialization.ReadingOptions.mutableContainers) as! NSArray
-        
-        return boardsDictionary
-    }
-    
-    func checkGyro() {
+    func checkAccelerometer() {
         let manageer: CMMotionManager = CMMotionManager()
-        if !manageer.isGyroAvailable {
-            let alert: UIAlertController = UIAlertController(title: "Darn it", message:
-                "your gyro dosen't work. this app is useless",
-                                          preferredStyle: UIAlertControllerStyle.alert)
-            alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil))
+        if !manageer.isAccelerometerAvailable {
+            let alert: UIAlertController = UIAlertController(
+                title: "Darn it",
+                message: "Your accelerometer dosen't work. This app is useless.",
+                preferredStyle: UIAlertControllerStyle.alert)
+            alert.addAction(UIAlertAction(title: "Ok",
+                            style: UIAlertActionStyle.default, handler: nil))
             self.present(alert, animated: true, completion: nil)
         }
     }
     
     @IBAction func newTryButtonOnClick(_ sender: Any) {
-        let vc: TryController = self.storyboard?.instantiateViewController(withIdentifier: "try") as! TryController
+        let vc: TryController =
+            self.storyboard?.instantiateViewController(withIdentifier: "try")
+                as! TryController
         self.present(vc, animated: true, completion: nil)
     }
 }
